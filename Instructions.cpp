@@ -1,6 +1,6 @@
 #include "Instructions.h"
 #include "Memory.h"
-#include <algorithm> // for std::remove
+
 
 namespace Instructions {
 
@@ -39,7 +39,14 @@ namespace Instructions {
     }
 
     Instruction* createInstruction(std::string strInstruction) {
-    strInstruction.erase(std::remove(strInstruction.begin(), strInstruction.end(), ' '), strInstruction.end());
+    
+    std::string cleanedStr;
+    for (size_t i = 0; i < strInstruction.length(); ++i) {
+        if (strInstruction[i] != ' ') {
+            cleanedStr += strInstruction[i];
+        }
+    }
+    strInstruction = cleanedStr;
 
     Instruction* instr = new Instruction();
 
