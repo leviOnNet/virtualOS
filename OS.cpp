@@ -1,7 +1,7 @@
 #include "OS.h"
 
 namespace OperatingSystem {
-    Instructions::Instruction** programInstructions = nullptr;
+    Instructions::Instruction** programInstructions = NULL;
     int numberOfInstructions = 0;
     int currentInstructionNumber = 0;
 
@@ -28,20 +28,20 @@ namespace OperatingSystem {
         }
 
         delete[] programInstructions;
-        programInstructions = nullptr;
+        programInstructions = NULL;
     }
 
     void loadHardDrive(std::string hardDriveDiskName) {
-        if (storage == nullptr || storage->buffer == nullptr) {
+        if (storage == NULL || storage->buffer == NULL) {
             return;
         }
 
-         // Load data from file into the storage buffer
+        // Load data from file into the storage buffer
         readFromFile(hardDriveDiskName, storage->buffer, storage->bufferSize);
     }
 
     int determineNumberOfInstructions(std::string programFile) {
-        std::ifstream file(programFile);
+        std::ifstream file(programFile.c_str());
         int count = 0;
         std::string line;
 
@@ -58,7 +58,7 @@ namespace OperatingSystem {
         numberOfInstructions = determineNumberOfInstructions(programFile);
         programInstructions = new Instructions::Instruction*[numberOfInstructions];
 
-        std::ifstream file(programFile);
+        std::ifstream file(programFile.c_str());
         std::string line;
         int index = 0;
 
@@ -70,33 +70,29 @@ namespace OperatingSystem {
     }
 
     void executeProgram() {
-    bool halt = false;
+        bool halt = false;
 
-    while (currentInstructionNumber < numberOfInstructions && !halt) {
-        if (currentInstructionNumber < 0 || currentInstructionNumber >= numberOfInstructions) {
-            std::cerr << "Error: Instruction pointer out of bounds: " << currentInstructionNumber << std::endl;
-            break;
-        }
+        while (currentInstructionNumber < numberOfInstructions && !halt) {
+            if (currentInstructionNumber < 0 || currentInstructionNumber >= numberOfInstructions) {
+                std::cerr << "Error: Instruction pointer out of bounds: " << currentInstructionNumber << std::endl;
+                break;
+            }
 
-        int before = currentInstructionNumber;
+            int before = currentInstructionNumber;
 
-        // Optionally log current instruction info for debugging
-        std::cout << "Executing instruction " << currentInstructionNumber
-                  << " opcode: " << programInstructions[currentInstructionNumber]->opcode
-                  << " operands: " << programInstructions[currentInstructionNumber]->operands[0] << ", "
-                  << programInstructions[currentInstructionNumber]->operands[1] << ", "
-                  << programInstructions[currentInstructionNumber]->operands[2] << std::endl;
+            std::cout << "Executing instruction " << currentInstructionNumber
+                      << " opcode: " << programInstructions[currentInstructionNumber]->opcode
+                      << " operands: " << programInstructions[currentInstructionNumber]->operands[0] << ", "
+                      << programInstructions[currentInstructionNumber]->operands[1] << ", "
+                      << programInstructions[currentInstructionNumber]->operands[2] << std::endl;
 
-        Instructions::executeInstruction(programInstructions[currentInstructionNumber], currentInstructionNumber);
-
-        // Only increment if the instruction didn't change the pointer itself
-        if (currentInstructionNumber == before) {
-            currentInstructionNumber++;
+            Instructions::executeInstruction(programInstructions[currentInstructionNumber], currentInstructionNumber);
+            
+            if (!halt && currentInstructionNumber == before) {
+                currentInstructionNumber++;
+            }
         }
     }
-}
-
-
 
     void printProgram() {
         for (int i = 0; i < numberOfInstructions; ++i) {
@@ -105,8 +101,8 @@ namespace OperatingSystem {
     }
 
     void translateProgram(std::string highLevelFile, std::string lowLevelFile) {
-        std::ifstream inFile(highLevelFile);
-        std::ofstream outFile(lowLevelFile);
+        std::ifstream inFile(highLevelFile.c_str());
+        std::ofstream outFile(lowLevelFile.c_str());
         std::string line;
 
         while (std::getline(inFile, line)) {
@@ -115,9 +111,11 @@ namespace OperatingSystem {
             std::string binaryLine;
 
             while (std::getline(ss, token, ',')) {
-                int value = std::stoi(token);
-                std::string binary;
+                int value;
+                std::stringstream converter(token);
+                converter >> value;
 
+                std::string binary;
                 for (int i = 3; i >= 0; --i) {
                     binary += ((value >> i) & 1) ? '1' : '0';
                 }

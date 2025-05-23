@@ -7,13 +7,18 @@ namespace Instructions {
     bool halt = false;
 
     int binaryToInt(std::string binaryString) {
-        int result = 0;
-        for (char c : binaryString) {
-            result <<= 1;
-            result += c - '0';
+    int result = 0;
+    for (size_t i = 0; i < binaryString.length(); ++i) {
+        result <<= 1;
+        if (binaryString[i] == '1') {
+            result |= 1;
+        } else if (binaryString[i] != '0') {
+            std::cerr << "Error: invalid character in binary string: " << binaryString[i] << std::endl;
+            return -1;  // Or handle error
         }
-        return result;
     }
+    return result;
+}
 
     int determineNumberOfOperands(int opcode) {
         switch (opcode) {
@@ -34,14 +39,16 @@ namespace Instructions {
     }
 
     Instruction* createInstruction(std::string strInstruction) {
-         strInstruction.erase(std::remove(strInstruction.begin(), strInstruction.end(), ' '), strInstruction.end());
+    strInstruction.erase(std::remove(strInstruction.begin(), strInstruction.end(), ' '), strInstruction.end());
 
     Instruction* instr = new Instruction();
+
     if (strInstruction.length() < 4) {
         std::cerr << "Error: instruction string too short to even read opcode: length = " << strInstruction.length() << std::endl;
         delete instr;
-        return nullptr;
+        return NULL;
     }
+
     instr->opcode = binaryToInt(strInstruction.substr(0, 4));
     int numOperands = determineNumberOfOperands(instr->opcode);
 
@@ -50,23 +57,29 @@ namespace Instructions {
         std::cerr << "Error: instruction string too short for opcode " << instr->opcode
                   << ". Length: " << strInstruction.length() << ", expected: " << requiredLength << std::endl;
         delete instr;
-        return nullptr;
+        return NULL;
     }
 
     instr->operands = new int[numOperands];
+    // Initialize operands to zero to avoid garbage
+    for (int i = 0; i < numOperands; ++i) {
+        instr->operands[i] = 0;
+    }
 
     for (int i = 0; i < numOperands; ++i) {
         int start = 4 + (i * 4);
         std::string operandBits = strInstruction.substr(start, 4);
-        // Check if operandBits contains only '0' and '1'
-        for (char c : operandBits) {
-            if (c != '0' && c != '1') {
-                std::cerr << "Error: invalid character '" << c << "' in operand bits: " << operandBits << std::endl;
+
+        // Validate operand bits
+        for (size_t j = 0; j < operandBits.length(); ++j) {
+            if (operandBits[j] != '0' && operandBits[j] != '1') {
+                std::cerr << "Error: invalid character '" << operandBits[j] << "' in operand bits: " << operandBits << std::endl;
                 delete[] instr->operands;
                 delete instr;
-                return nullptr;
+                return NULL;
             }
         }
+
         instr->operands[i] = binaryToInt(operandBits);
         std::cout << "Parsed operand " << i << ": bits = " << operandBits << ", value = " << instr->operands[i] << std::endl;
     }
@@ -75,12 +88,11 @@ namespace Instructions {
 }
 
 
-
     void destroyInstruction(Instruction*& instruction) {
         if (instruction) {
             delete[] instruction->operands;
             delete instruction;
-            instruction = nullptr;
+            instruction = NULL;
         }
     }
 
@@ -103,10 +115,8 @@ namespace Instructions {
             case 14: constOp(instruction->operands[0], instruction->operands[1]); break;
             case 15: moveOp(instruction->operands[0], instruction->operands[1]); break;
             default: std::cout << "Invalid opcode.\n"; break;
-            
         }
         ++currentInstructionNumber;
-        
     }
 
     // --- Individual Opcode Functions ---
@@ -175,13 +185,11 @@ namespace Instructions {
     }
 
     void persistOp() {
-        // Implementation could save storage contents to file
-         writeToFile("storage.dat", storage->buffer, storage->bufferSize);
+        writeToFile("storage.dat", storage->buffer, storage->bufferSize);
     }
 
     void reloadOp() {
-        // Implementation could load from file back into storage
-         readFromFile("storage.dat", storage->buffer, storage->bufferSize);
+        readFromFile("storage.dat", storage->buffer, storage->bufferSize);
     }
 
     void constOp(int constValue, int RAMLocation) {

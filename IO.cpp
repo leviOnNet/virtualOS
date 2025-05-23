@@ -25,12 +25,12 @@ std::string intToBin(int value, int size) {
 }
 
     // Adjust size
-    if (binary.length() > size) {
+    if ((int)binary.length() > size) {
         // Drop leftmost bits
         binary = binary.substr(binary.length() - size);
     } else {
         // Pad with zeros on the left
-        while (binary.length() < size) {
+        while ((int)binary.length() < size) {
             binary = "0" + binary;
         }
     }
